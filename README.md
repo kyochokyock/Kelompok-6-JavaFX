@@ -17,3 +17,13 @@ Alur Bermain :
 Vide Demonstrasi Game :
 https://youtu.be/HBaCb8ejSqU
 
+Note :
+Jika ingin menjalankan game harus menyambungkan dulu dengan database dengan mendowload connecter mysql untuk terhubung dengan database mysql di php my admin
+
+Database game :
+CREATE DATABASE game_db;
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(100) NOT NULL
+);
