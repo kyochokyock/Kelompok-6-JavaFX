@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/23.0.1" fx:controller="gamecar.FXMLDocumentController">
+    <!-- Background -->
+    <ImageView fitHeight="300" fitWidth="400" layoutX="0" layoutY="0">
+        <image>
+            <Image url="@assets/latarbelakangawal.jpg" />
+        </image>
+    </ImageView>
+
+    <!-- Login Form -->
+    <TextField fx:id="usernameField" layoutX="125.0" layoutY="78.0" promptText="Username" />
+    <PasswordField fx:id="passwordField" layoutX="123.0" layoutY="124.0" promptText="Password" />
+    <Button layoutX="123.0" layoutY="167.0" onAction="#handleLogin" text="Login" />
+    <Button layoutX="213.0" layoutY="167.0" onAction="#switchSceneToRegister" text="Register" />
+</AnchorPane>
