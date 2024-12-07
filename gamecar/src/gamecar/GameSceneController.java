@@ -1,108 +1,178 @@
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/javafx/FXMain.java to edit this template
+ * Click nbfs://nbhost/SystemFileSystem/Templates/javafx/FXMLController.java to edit this template
  */
 package gamecar;
-
 import javafx.animation.AnimationTimer;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.image.Image;
+import javafx.scene.control.Button;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import java.util.ArrayList;
 import java.util.Random;
-import javafx.stage.Stage;
-
+/**
+ * Controller for the game, managing player and enemy cars.
+ */
 public class GameSceneController {
 
     @FXML
     private AnchorPane gamePane;
+
     @FXML
-    private Text scoreText;
-
     private ImageView playerCar;
-    private ArrayList<ImageView> enemyCars = new ArrayList<>();
-    private int score = 0;
-    private boolean gameOver = false;
+
+    @FXML
+    private ImageView enemyCar1, enemyCar2, enemyCar3;
+
+    @FXML
+    private Rectangle playerBounds;
+
+    @FXML
+    private Text scoreText, gameOverText;
+
+    @FXML
+    private Button playButton, resetButton;
+
+    private PlayerCar player;
+    private ArrayList<EnemyCar> enemies;
+    private int score;
+    private boolean gameOver;
+    private AnimationTimer gameLoop;
     
-    public void setStage(Stage stage) {
-    stage.getScene().setOnKeyPressed(event -> {
-        if (!gameOver) {
-            if (event.getCode() == KeyCode.LEFT && playerCar.getLayoutX() > 10) {
-                playerCar.setLayoutX(playerCar.getLayoutX() - 20);
-            } else if (event.getCode() == KeyCode.RIGHT && playerCar.getLayoutX() < 240) {
-                playerCar.setLayoutX(playerCar.getLayoutX() + 20);
-            }
-        }
-    });
-}
-    
+    private double speed = 1.5;  // Initial speed of the enemies
+    private final double maxSpeed = 5.0;  // Maximum speed
+
+    /**
+     * Initialize the game scene.
+     */
     public void initialize() {
-        setupGame();
-        startGameLoop();
+        // Initialize player car logic
+        player = new PlayerCar(playerCar.getLayoutX(), playerCar.getLayoutY());
+
+        // Initialize enemy cars
+        enemies = new ArrayList<>();
+        enemies.add(new EnemyCar(enemyCar1));
+        enemies.add(new EnemyCar(enemyCar2));
+        enemies.add(new EnemyCar(enemyCar3));
+
+        // Prepare UI elements
+        resetButton.setVisible(false);
+        gameOverText.setVisible(false);
+        playButton.setVisible(true);
+
+        setupKeyboardControls();
+        gamePane.setFocusTraversable(true);
+        resetGame();
+        
+        
     }
 
-    private void setupGame() {
-        gamePane.setStyle("-fx-background-image: url('/assets/road.jpeg'); -fx-background-size: cover;");
+    private void setupKeyboardControls() {
+        // Cek apakah gamePane benar-benar menerima input keyboard
+        gamePane.setOnKeyPressed(event -> {
+            System.out.println("Key pressed: " + event.getCode()); 
+            if (gameOver) return;  // Tidak bisa bergerak jika game over
 
-        playerCar = new ImageView(new Image("/assets/car_player.png"));
-        playerCar.setFitWidth(50);
-        playerCar.setFitHeight(100);
-        playerCar.setLayoutX(200);
-        playerCar.setLayoutY(400);
-        gamePane.getChildren().add(playerCar);
+            double x = playerCar.getLayoutX();
+            double y = playerCar.getLayoutY();
 
-        for (int i = 0; i < 3; i++) {
-            addEnemyCar();
-        }
-
-        scoreText.setText("Score: 0");
-    }
-
-    private void addEnemyCar() {
-        Random random = new Random();
-        ImageView enemyCar = new ImageView(new Image("/assets/enemy_car.png"));
-        enemyCar.setFitWidth(50);
-        enemyCar.setFitHeight(100);
-        enemyCar.setLayoutX(random.nextInt(300));
-        enemyCar.setLayoutY(-200);
-        enemyCars.add(enemyCar);
-        gamePane.getChildren().add(enemyCar);
-    }
-
-    private void startGameLoop() {
-        AnimationTimer gameLoop = new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                if (!gameOver) {
-                    moveEnemyCars();
-                    checkCollisions();
-                    updateScore();
+            if (event.getCode() == KeyCode.LEFT || event.getCode() == KeyCode.A) {
+                if (x > playerBounds.getLayoutX()) {
+                    playerCar.setLayoutX(x - 10);
+                }
+            } else if (event.getCode() == KeyCode.RIGHT || event.getCode() == KeyCode.D) {
+                if (x + playerCar.getFitWidth() < playerBounds.getLayoutX() + playerBounds.getWidth()) {
+                    playerCar.setLayoutX(x + 10);
+                }
+            } else if (event.getCode() == KeyCode.UP || event.getCode() == KeyCode.W) {
+                if (y > playerBounds.getLayoutY()) {
+                    playerCar.setLayoutY(y - 10);
+                }
+            } else if (event.getCode() == KeyCode.DOWN || event.getCode() == KeyCode.S) {
+                if (y + playerCar.getFitHeight() < playerBounds.getLayoutY() + playerBounds.getHeight()) {
+                    playerCar.setLayoutY(y + 10);
                 }
             }
-        };
-        gameLoop.start();
+        });
+
+        gamePane.requestFocus();
     }
 
-    private void moveEnemyCars() {
-        for (ImageView enemyCar : enemyCars) {
-            enemyCar.setLayoutY(enemyCar.getLayoutY() + 5);
-            if (enemyCar.getLayoutY() > 500) {
-                enemyCar.setLayoutY(-200);
-                enemyCar.setLayoutX(new Random().nextInt(240)); // Pastikan posisi musuh dalam area game
+    private void updatePlayerView() {
+        System.out.println("Player position updated: " + player.getX() + ", " + player.getY());
+        playerCar.setLayoutX(player.getX());
+        playerCar.setLayoutY(player.getY());
+    }
+
+   
+    private void moveEnemies() {
+        Random random = new Random();
+        for (EnemyCar enemy : enemies) {
+            enemy.moveVertically(speed);
+            if (enemy.getY() > playerBounds.getHeight()) {
+                // Set new valid position for the enemy when it goes off the screen
+                setUniquePosition(enemy, random);
                 score += 10;
+            }
+            enemy.updateView(); // Update the view of the enemy car after moving
+        }
+
+        // Increase the speed gradually as the score increases
+        if (score % 50 == 0 && speed < maxSpeed) {
+            speed += 0.5; // Increase speed by 0.5
+        }
+    }
+      
+    
+    private void setUniquePosition(EnemyCar enemy, Random random) {
+        boolean positionValid = false;
+
+        while (!positionValid) {
+            // Generate random X and Y positions for the enemy
+            double newX = playerBounds.getLayoutX() + random.nextInt((int) (playerBounds.getWidth() - enemyCar1.getFitWidth()));
+            double newY = -200 - random.nextInt(300); // Spawn above the screen
+
+            positionValid = true;
+
+            // Check if the new position overlaps with other enemies
+            for (EnemyCar otherEnemy : enemies) {
+                if (otherEnemy != enemy && Math.abs(otherEnemy.getX() - newX) < 50 && Math.abs(otherEnemy.getY() - newY) < 50) {
+                    positionValid = false;
+                    break;
+                }
+            }
+
+            // Check if the new position is too close to the player
+            double playerX = playerCar.getLayoutX();
+            double playerY = playerCar.getLayoutY();
+            double distanceX = Math.abs(playerX - newX);
+            double distanceY = Math.abs(playerY - newY);
+
+            // Ensure there's enough distance between the player and enemy
+            if (positionValid && distanceX < 100 && distanceY < 100) {
+                positionValid = false; // Too close to the player, try again
+            }
+
+            // If valid, set the new position for the enemy
+            if (positionValid) {
+                enemy.setX(newX);
+                enemy.setY(newY);
             }
         }
     }
 
+
     private void checkCollisions() {
-        for (ImageView enemyCar : enemyCars) {
-            if (playerCar.getBoundsInParent().intersects(enemyCar.getBoundsInParent())) {
-                endGame();
-                return;
+        for (EnemyCar enemy : enemies) {
+            if (playerCar.getBoundsInParent().intersects(enemy.getView().getBoundsInParent())) {
+                gameOver = true;
+                gameLoop.stop();
+                gameOverText.setText("Game Over! Your Final Score is : " + score);
+                gameOverText.setVisible(true);
+                resetButton.setVisible(true);
             }
         }
     }
@@ -111,12 +181,46 @@ public class GameSceneController {
         scoreText.setText("Score: " + score);
     }
 
-    private void endGame() {
-        gameOver = true;
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Game Over");
-        alert.setHeaderText(null);
-        alert.setContentText("Game Over! Your final score is: " + score);
-        alert.showAndWait();
+    
+    @FXML
+    private void startGame() {
+        System.out.println("Game started!"); 
+        score = 0;
+        gameOver = false;
+        gameOverText.setVisible(false);
+        playButton.setVisible(false);
+        resetButton.setVisible(false);
+
+        gameLoop = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                moveEnemies();
+                checkCollisions();
+                updateScore();
+            }
+        };
+        gameLoop.start();
+        gamePane.requestFocus(); 
+    }
+
+    @FXML
+    private void resetGame() {
+        player.resetPosition(200, 550);
+        updatePlayerView();
+
+        for (EnemyCar enemy : enemies) {
+            enemy.resetPosition(enemy.getX(), -100); // Reset to initial positions
+            enemy.updateView();
+        }
+
+        score = 0;
+        scoreText.setText("Score: 0");
+        gameOver = false;
+        gameOverText.setVisible(false);
+        resetButton.setVisible(false);
+        playButton.setVisible(true);
+
+        // Reset speed when the game is reset
+        speed = 1.5;
     }
 }

@@ -119,7 +119,6 @@ public class FXMLDocumentController implements Initializable {
             if (controller instanceof FXMLDocumentController) {
                 ((FXMLDocumentController) controller).setStage(stage);
             }else if (controller instanceof GameSceneController) {
-                ((GameSceneController) controller).setStage(stage); // Set Stage untuk GameSceneController
                 ((GameSceneController) controller).initialize();
             }
             stage.setScene(newScene);

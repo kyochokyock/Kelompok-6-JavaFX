@@ -9,13 +9,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-
 /**
  *
- * @author ASUS
+ * @author Dea
  */
 public class Gamecar extends Application {
-    
     /**
      *
      * @param primaryStage
@@ -32,7 +30,7 @@ public class Gamecar extends Application {
             controller.setStage(primaryStage);
 
             // Set the scene and show the stage
-            primaryStage.setTitle("GameCar - Login");
+            primaryStage.setTitle("GameCar");
             primaryStage.setScene(new Scene(root));
             primaryStage.show();
         } catch (Exception e) {
@@ -40,25 +38,6 @@ public class Gamecar extends Application {
             System.err.println("Error initializing the application: " + e.getMessage());
         }
     }
-//    public void start2(Stage primaryStage) {
-//        try {
-//            // Load the GameScene.fxml directly
-//            FXMLLoader loader = new FXMLLoader(getClass().getResource("/gamecar/GameScene.fxml"));
-//            Parent root = loader.load();
-//
-//            // Get the controller and set the stage
-//            GameSceneController controller = loader.getController();
-//            controller.setStage(primaryStage);
-//
-//            // Set the scene and show the stage
-//            primaryStage.setTitle("GameCar - Game Scene");
-//            primaryStage.setScene(new Scene(root));
-//            primaryStage.show();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            System.err.println("Error initializing the game scene: " + e.getMessage());
-//        }
-//    }
 
     /**
      * @param args the command line arguments
